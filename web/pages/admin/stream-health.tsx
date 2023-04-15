@@ -25,7 +25,7 @@ const WifiOutlined = dynamic(() => import('@ant-design/icons/WifiOutlined'), {
 
 interface TimedValue {
   time: Date;
-  value: Number;
+  value: number;
 }
 
 interface DescriptionBoxProps {
@@ -60,7 +60,7 @@ const StreamHealth = () => {
   const [minimumPlayerBitrate, setMinimumPlayerBitrate] = useState<TimedValue[]>([]);
   const [medianPlayerBitrate, setMedianPlayerBitrate] = useState<TimedValue[]>([]);
   const [maximumPlayerBitrate, setMaximumPlayerBitrate] = useState<TimedValue[]>([]);
-  const [availableBitrates, setAvailableBitrates] = useState<Number[]>([]);
+  const [availableBitrates, setAvailableBitrates] = useState<number[]>([]);
   const [segmentLength, setSegmentLength] = useState(0);
 
   const getMetrics = async () => {
@@ -233,15 +233,15 @@ const StreamHealth = () => {
   const latencyMedian = medianLatency[medianLatency.length - 1]?.value || 0;
   const latencyMax = highestLatency[highestLatency.length - 1]?.value || 0;
   const latencyMin = lowestLatency[lowestLatency.length - 1]?.value || 0;
-  const latencyStat = (Number(latencyMax) + Number(latencyMin) + Number(latencyMedian)) / 3;
+  const latencyStat = (latencyMax + latencyMin + latencyMedian) / 3;
 
   let recentErrorCount = 0;
   const errorValueCount = errorChart[0]?.data.length || 0;
   if (errorValueCount > 5) {
     const values = errorChart[0].data.slice(-5);
-    recentErrorCount = values.reduce((acc, curr) => acc + Number(curr.value), 0);
+    recentErrorCount = values.reduce((acc, curr) => acc + curr.value, 0);
   } else {
-    recentErrorCount = errorChart[0].data.reduce((acc, curr) => acc + Number(curr.value), 0);
+    recentErrorCount = errorChart[0].data.reduce((acc, curr) => acc + curr.value, 0);
   }
   const showStats = currentSpeed > 0 || currentDownloadSeconds > 0 || recentErrorCount > 0;
   let bitrateError = null;
