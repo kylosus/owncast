@@ -69,6 +69,7 @@ const (
 	customOfflineMessageKey              = "custom_offline_message"
 	customColorVariableValuesKey         = "custom_color_variable_values"
 	streamKeysKey                        = "stream_keys"
+	videoServingEndpointKey              = "video_serving_endpoint"
 )
 
 // GetExtraPageBodyContent will return the user-supplied body content.
@@ -958,4 +959,15 @@ func GetStreamKeys() []models.StreamKey {
 func SetStreamKeys(actions []models.StreamKey) error {
 	configEntry := ConfigEntry{Key: streamKeysKey, Value: actions}
 	return _datastore.Save(configEntry)
+}
+
+// GetVideoServingEndpoint returns the custom video endpont.
+func GetVideoServingEndpoint() string {
+	message, _ := _datastore.GetString(videoServingEndpointKey)
+	return message
+}
+
+// SetVideoServingEndpoint sets the custom video endpoint.
+func SetVideoServingEndpoint(message string) error {
+	return _datastore.SetString(videoServingEndpointKey, message)
 }

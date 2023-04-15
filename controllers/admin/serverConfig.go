@@ -59,6 +59,7 @@ func GetServerConfig(w http.ResponseWriter, r *http.Request) {
 		ChatDisabled:            data.GetChatDisabled(),
 		ChatJoinMessagesEnabled: data.GetChatJoinMessagesEnabled(),
 		SocketHostOverride:      data.GetWebsocketOverrideHost(),
+		VideoServingEndpoint:    data.GetVideoServingEndpoint(),
 		ChatEstablishedUserMode: data.GetChatEstbalishedUsersOnlyMode(),
 		HideViewerCount:         data.GetHideViewerCount(),
 		VideoSettings: videoSettings{
@@ -119,6 +120,7 @@ type serverConfigAdminResponse struct {
 	Federation              federationConfigResponse    `json:"federation"`
 	SuggestedUsernames      []string                    `json:"suggestedUsernames"`
 	SocketHostOverride      string                      `json:"socketHostOverride,omitempty"`
+	VideoServingEndpoint    string                      `json:"videoServingEndpoint"`
 	Notifications           notificationsConfigResponse `json:"notifications"`
 	HideViewerCount         bool                        `json:"hideViewerCount"`
 }
