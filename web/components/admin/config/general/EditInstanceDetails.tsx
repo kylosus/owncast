@@ -16,6 +16,7 @@ import {
   FIELD_PROPS_YP,
   FIELD_PROPS_NSFW,
   FIELD_PROPS_HIDE_VIEWER_COUNT,
+  FIELD_PROPS_DISABLE_SEARCH_INDEXING,
 } from '../../../../utils/config-constants';
 import { UpdateArgs } from '../../../../types/config-section';
 import { ToggleSwitch } from '../../ToggleSwitch';
@@ -29,7 +30,7 @@ export default function EditInstanceDetails() {
   const serverStatusData = useContext(ServerStatusContext);
   const { serverConfig } = serverStatusData || {};
 
-  const { instanceDetails, yp, hideViewerCount } = serverConfig;
+  const { instanceDetails, yp, hideViewerCount, disableSearchIndexing } = serverConfig;
   const { instanceUrl } = yp;
 
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function EditInstanceDetails() {
       ...instanceDetails,
       ...yp,
       hideViewerCount,
+      disableSearchIndexing,
     });
   }, [instanceDetails, yp]);
 
@@ -65,6 +67,10 @@ export default function EditInstanceDetails() {
 
   function handleHideViewerCountChange(enabled: boolean) {
     handleFieldChange({ fieldName: 'hideViewerCount', value: enabled });
+  }
+
+  function handleDisableSearchEngineIndexingChange(enabled: boolean) {
+    handleFieldChange({ fieldName: 'disableSearchIndexing', value: enabled });
   }
 
   const hasInstanceUrl = instanceUrl !== '';
@@ -121,6 +127,14 @@ export default function EditInstanceDetails() {
         {...FIELD_PROPS_HIDE_VIEWER_COUNT}
         checked={formDataValues.hideViewerCount}
         onChange={handleHideViewerCountChange}
+      />
+
+      <ToggleSwitch
+        fieldName="disableSearchIndexing"
+        useSubmit
+        {...FIELD_PROPS_DISABLE_SEARCH_INDEXING}
+        checked={formDataValues.disableSearchIndexing}
+        onChange={handleDisableSearchEngineIndexingChange}
       />
 
       <br />

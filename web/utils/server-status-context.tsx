@@ -71,6 +71,7 @@ export const initialServerConfigState: ConfigDetails = {
   chatJoinMessagesEnabled: true,
   chatEstablishedUserMode: false,
   hideViewerCount: false,
+  disableSearchIndexing: false,
 };
 
 const initialServerStatusState = {
