@@ -113,6 +113,11 @@ export const removedMessageIdsAtom = atom<string[]>({
   default: [],
 });
 
+export const knownChatUserDisplayNamesAtom = atom<string[]>({
+  key: 'knownChatUserDisplayNames',
+  default: [],
+});
+
 export const isChatAvailableSelector = selector({
   key: 'isChatAvailableSelector',
   get: ({ get }) => {
@@ -171,6 +176,9 @@ export const ClientConfigStore: FC = () => {
   const setGlobalFatalErrorMessage = useSetRecoilState<DisplayableError>(fatalErrorStateAtom);
   const setWebsocketService = useSetRecoilState<WebsocketService>(websocketServiceAtom);
   const [hiddenMessageIds, setHiddenMessageIds] = useRecoilState<string[]>(removedMessageIdsAtom);
+  const [knownChatUserDisplayNames, setKnownChatUserDisplayNames] = useRecoilState<string[]>(
+    knownChatUserDisplayNamesAtom,
+  );
   const [hasLoadedConfig, setHasLoadedConfig] = useState(false);
 
   let ws: WebsocketService;
@@ -289,6 +297,10 @@ export const ClientConfigStore: FC = () => {
 
   const handleSocketConnected = () => {
     hasWebsocketDisconnected = false;
+  };
+
+  const handleChatUserDisplayNameAdd = (displayName: string) => {
+    setKnownChatUserDisplayNames(currentState => [...currentState, displayName]);
   };
 
   const handleMessage = (message: SocketEvent) => {

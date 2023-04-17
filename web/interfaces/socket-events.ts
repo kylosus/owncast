@@ -20,6 +20,7 @@ export enum MessageType {
 }
 
 export interface SocketEvent {
+  [x: string]: { displayName: any };
   id: string;
   timestamp: Date;
   type: MessageType;

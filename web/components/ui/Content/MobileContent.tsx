@@ -31,6 +31,7 @@ export type MobileContentProps = {
   actions: ExternalAction[];
   externalActionSelected: (action: ExternalAction) => void;
   supportsBrowserNotifications: boolean;
+  knownChatUserDisplayNames?: string[];
 };
 
 // lazy loaded components
@@ -61,6 +62,7 @@ type ChatContentProps = {
   chatEnabled: boolean;
   messages: ChatMessage[];
   currentUser: CurrentUser;
+  knownChatUserDisplayNames?: string[];
 };
 
 const ComponentErrorFallback = ({ error, resetErrorBoundary }) => (
@@ -71,7 +73,13 @@ const ComponentErrorFallback = ({ error, resetErrorBoundary }) => (
   />
 );
 
-const ChatContent: FC<ChatContentProps> = ({ showChat, chatEnabled, messages, currentUser }) => {
+const ChatContent: FC<ChatContentProps> = ({
+  showChat,
+  chatEnabled,
+  messages,
+  currentUser,
+  knownChatUserDisplayNames,
+}) => {
   const { id, displayName } = currentUser;
 
   return showChat && !!currentUser ? (
@@ -81,6 +89,7 @@ const ChatContent: FC<ChatContentProps> = ({ showChat, chatEnabled, messages, cu
       chatUserId={id}
       isModerator={false}
       chatAvailable={chatEnabled}
+      knownChatUserDisplayNames={knownChatUserDisplayNames}
     />
   ) : (
     <Skeleton loading active paragraph={{ rows: 7 }} />
@@ -103,6 +112,7 @@ export const MobileContent: FC<MobileContentProps> = ({
   setShowFollowModal,
   supportFediverseFeatures,
   supportsBrowserNotifications,
+  knownChatUserDisplayNames,
 }) => {
   const aboutTabContent = (
     <>
@@ -131,6 +141,7 @@ export const MobileContent: FC<MobileContentProps> = ({
           chatEnabled={chatEnabled}
           messages={messages}
           currentUser={currentUser}
+          knownChatUserDisplayNames={knownChatUserDisplayNames}
         />
       ),
     });
