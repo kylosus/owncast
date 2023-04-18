@@ -358,8 +358,9 @@ func GetHashtagsFromText(text string) []string {
 
 // ShuffleStringSlice will shuffle a slice of strings.
 func ShuffleStringSlice(s []string) []string {
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(s), func(i, j int) {
+	// nolint:gosec
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	r.Shuffle(len(s), func(i, j int) {
 		s[i], s[j] = s[j], s[i]
 	})
 	return s
