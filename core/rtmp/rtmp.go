@@ -2,13 +2,13 @@ package rtmp
 
 import (
 	"fmt"
-	"io"
-	"net"
-	"time"
-
+	"github.com/nareix/joy5/av"
 	"github.com/nareix/joy5/format/flv"
 	"github.com/nareix/joy5/format/flv/flvio"
 	log "github.com/sirupsen/logrus"
+	"io"
+	"net"
+	"time"
 
 	"github.com/nareix/joy5/format/rtmp"
 	"github.com/owncast/owncast/config"
@@ -16,7 +16,15 @@ import (
 	"github.com/owncast/owncast/models"
 )
 
-var _hasInboundRTMPConnection = false
+const (
+	FREE = iota // Can accept new stream
+	BUSY = iota // Cannot accept new stream
+	DEAD = iota // Can accept new stream because the previous one is unresponsive
+)
+
+var _rtmpState = FREE
+
+//var _hasInboundRTMPConnection = false
 
 var (
 	_pipe           *io.PipeWriter
@@ -27,6 +35,11 @@ var (
 	_setStreamAsConnected func(*io.PipeReader)
 	_setBroadcaster       func(models.Broadcaster)
 )
+
+type packetRes struct {
+	pkt av.Packet
+	err error
+}
 
 // Start starts the rtmp service, listening on specified RTMP port.
 func Start(setStreamAsConnected func(*io.PipeReader), setBroadcaster func(models.Broadcaster)) {
@@ -72,10 +85,19 @@ func HandleConn(c *rtmp.Conn, nc net.Conn) {
 		}
 	}
 
-	if _hasInboundRTMPConnection {
+	// Server is either already connected or in grace period
+	if _rtmpState == BUSY {
 		log.Errorln("stream already running; can not overtake an existing stream")
 		_ = nc.Close()
 		return
+	}
+
+	defer handleDisconnect(nc)
+
+	// Previous connection is dead, kill it
+	if _rtmpConnection != nil {
+		fmt.Println("Killing the previous connection")
+		handleDisconnect(_rtmpConnection)
 	}
 
 	accessGranted := false
@@ -95,7 +117,6 @@ func HandleConn(c *rtmp.Conn, nc net.Conn) {
 
 	if !accessGranted {
 		log.Errorln("invalid streaming key; rejecting incoming stream")
-		_ = nc.Close()
 		return
 	}
 
@@ -104,53 +125,77 @@ func HandleConn(c *rtmp.Conn, nc net.Conn) {
 	log.Infoln("Inbound stream connected.")
 	_setStreamAsConnected(rtmpOut)
 
-	_hasInboundRTMPConnection = true
+	//_hasInboundRTMPConnection = true
+
+	// Give 10 seconds of grace period to the accepted stream
+	// mutex?
+	_rtmpState = BUSY
 	_rtmpConnection = nc
 
 	w := flv.NewMuxer(rtmpIn)
 
-	for {
-		if !_hasInboundRTMPConnection {
-			break
+	packets := make(chan packetRes, 1)
+
+	go func() {
+		for {
+			pkg, err := c.ReadPacket()
+			packets <- packetRes{pkg, err}
+
+			if err != nil {
+				return
+			}
 		}
+	}()
 
-		// If we don't get a readable packet in 10 seconds give up and disconnect
-		if err := _rtmpConnection.SetReadDeadline(time.Now().Add(10 * time.Second)); err != nil {
-			log.Debugln(err)
-		}
-
-		pkt, err := c.ReadPacket()
-
-		// Broadcaster disconnected
-		if err == io.EOF {
-			handleDisconnect(nc)
+	select {
+	case packet := <-packets:
+		if !handlePacket(w, packet) {
 			return
 		}
+	case <-time.After(10 * time.Second):
+		log.Infoln("Haven't received a valid package for 10 seconds. Accepting new connections")
+		_rtmpState = FREE
+	}
 
-		// Read timeout.  Disconnect.
-		if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
-			log.Debugln("Timeout reading the inbound stream from the broadcaster.  Assuming that they disconnected and ending the stream.")
-			handleDisconnect(nc)
-			return
-		}
-
-		if err := w.WritePacket(pkt); err != nil {
-			log.Errorln("unable to write rtmp packet", err)
-			handleDisconnect(nc)
+	for packet := range packets {
+		if !handlePacket(w, packet) {
 			return
 		}
 	}
 }
 
+func handlePacket(w *flv.Muxer, packet packetRes) bool {
+	// Broadcaster
+	//ed
+	if packet.err == io.EOF {
+		return false
+	}
+
+	// Read timeout.  Disconnect.
+	if neterr, ok := packet.err.(net.Error); ok && neterr.Timeout() {
+		log.Debugln("Timeout reading the inbound stream from the broadcaster.  Assuming that they disconnected and ending the stream.")
+		return false
+	}
+
+	if err := w.WritePacket(packet.pkt); err != nil {
+		log.Errorln("unable to write rtmp packet", err)
+		return false
+	}
+
+	return true
+}
+
 func handleDisconnect(conn net.Conn) {
-	if !_hasInboundRTMPConnection {
+	// May not be necessary
+	if _rtmpState == FREE {
 		return
 	}
 
 	log.Infoln("Inbound stream disconnected.")
 	_ = conn.Close()
 	_ = _pipe.Close()
-	_hasInboundRTMPConnection = false
+	//_hasInboundRTMPConnection = false
+	_rtmpState = FREE
 }
 
 // Disconnect will force disconnect the current inbound RTMP connection.
