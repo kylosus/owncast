@@ -52,9 +52,9 @@ export const Main: FC = () => {
   const appState = useRecoilValue<AppStateOptions>(appStateAtom);
 
   const layoutRef = useRef<HTMLDivElement>(null);
-  const { chatDisabled, version } = clientConfig;
+  const { chatDisabled } = clientConfig;
   const { videoAvailable } = appState;
-  const { online, streamTitle } = clientStatus;
+  const { online, streamTitle, versionNumber: version } = clientStatus;
 
   useEffect(() => {
     setupNoLinkReferrer(layoutRef.current);
@@ -91,6 +91,12 @@ export const Main: FC = () => {
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-TileImage" content="/img/favicon/ms-icon-144x144.png" />
         <meta name="theme-color" content="#ffffff" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
         <base target="_blank" />
       </Head>
 
