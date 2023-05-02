@@ -4,7 +4,7 @@
   display: grid;
   width: 100%;
   justify-items: center;
-//  height: 75vh;
+  height: calc(100vh - var(--header-height));
   aspect-ratio: 16 / 9;
 
   @media (max-width: 1200px) {
